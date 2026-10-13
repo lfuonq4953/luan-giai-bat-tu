@@ -82,7 +82,12 @@ function section(text: string, name: RegExp): string {
 }
 
 export function parseChartText(input: string): ParsedText {
-  const text = norm(input).replace(/\r/g, '');
+  // Gỡ định dạng Markdown thường gặp khi chép từ Gemini/ChatGPT: khối ```, **đậm**, tiêu đề #, gạch đầu dòng
+  const text = norm(input).replace(/\r/g, '')
+    .replace(/^\s*```.*$/gmu, '')
+    .replace(/\*\*|__/g, '')
+    .replace(/^\s{0,3}#{1,6}\s+/gmu, '')
+    .replace(/^\s*[-*•]\s+(?=\S)/gmu, '');
   const warnings: string[] = [];
   const hasSections = /===/.test(text);
   const general = hasSections ? section(text, /THÔNG TIN/i) : text;

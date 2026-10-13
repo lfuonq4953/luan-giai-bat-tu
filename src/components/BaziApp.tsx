@@ -4,6 +4,7 @@ import type { ChartInput } from '@/lib/battu/chart';
 import { readFromParsed, Reading } from '@/lib/reading';
 import { parseChartText } from '@/lib/parseText';
 import { SAMPLE_TEXT } from '@/lib/sample';
+import { buildGeminiPrompt, GEMINI_URL, TUVI_VN_BATTU_URL } from '@/lib/geminiPrompt';
 import { ConfirmForm, Draft, draftFromInput, inputFromDraft } from './ConfirmForm';
 import { ResultView } from './ResultView';
 
@@ -24,6 +25,17 @@ export function BaziApp({ api }: { api: AppApi }) {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [copied, setCopied] = useState(false);
+  const prompt = buildGeminiPrompt();
+  const copyPrompt = async () => {
+    try { await navigator.clipboard.writeText(prompt); }
+    catch {
+      const ta = document.createElement('textarea'); ta.value = prompt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); } catch { /* bỏ qua */ }
+      ta.remove();
+    }
+    setCopied(true); setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => { try { const t = localStorage.getItem(DRAFT_KEY); if (t) setText(t); } catch { /* bỏ qua */ } }, []);
   useEffect(() => { try { localStorage.setItem(DRAFT_KEY, text); } catch { /* bỏ qua */ } }, [text]);
@@ -66,14 +78,24 @@ export function BaziApp({ api }: { api: AppApi }) {
         <section className="hero">
           <div className="card">
             <div className="eyebrow">Tử Vi · Bát Tự</div>
-            <h2>Dán văn bản lá số, nhận bài luận chi tiết</h2>
-            <p className="lead">Sao chép phần mô tả lá số (thông tin chung, 12 cung Tử Vi, tứ trụ Bát Tự, đại vận, lưu niên) rồi dán vào ô bên phải. Web tự đọc và luận: tính cách, sự nghiệp, tài chính, tình duyên, sức khoẻ, đại vận và năm xem.</p>
+            <h2>Lấy văn bản lá số trong 3 bước</h2>
+            <p className="lead">Web luận giải từ văn bản lá số. Nếu chưa có, bạn lập lá số miễn phí trên tuvi.vn rồi nhờ Gemini chuyển ảnh thành văn bản.</p>
             <ol className="steps">
-              <li><b>1</b><span>Dán văn bản hoặc mở file .txt.</span></li>
-              <li><b>2</b><span>Bấm “Luận giải”. Có thể sửa tứ trụ nếu văn bản ghi sai.</span></li>
-              <li><b>3</b><span>Đọc từng mục, bấm vào từng đại vận, từng năm để xem chi tiết.</span></li>
+              <li><b>1</b><span><strong>Lập lá số Bát Tự</strong> tại <a href={TUVI_VN_BATTU_URL} target="_blank" rel="noopener noreferrer">tuvi.vn – Lập lá số Bát Tự Tứ Trụ</a>: nhập họ tên, ngày giờ sinh, giới tính → lập lá số → <strong>chụp màn hình</strong> toàn bộ lá số (cả phần đại vận). Có ảnh lá số Tử Vi thì chụp thêm để bài luận đầy đủ hơn.</span></li>
+              <li><b>2</b><span><strong>Đổi ảnh sang văn bản</strong> bằng <a href={GEMINI_URL} target="_blank" rel="noopener noreferrer">Gemini</a>: gửi ảnh kèm câu lệnh mẫu bên dưới, rồi sao chép phần văn bản Gemini trả về.</span></li>
+              <li><b>3</b><span><strong>Dán vào ô bên phải</strong> và bấm “Luận giải”. Nếu tứ trụ bị chép sai, bấm “Sửa tứ trụ” trong trang kết quả để chỉnh lại.</span></li>
             </ol>
-            <p className="fmt" style={{ marginTop: 16 }}>Tối thiểu cần dòng <code>Giới tính: Nam</code> và <code>Tứ trụ: Ất Dậu (năm) - Ất Dậu (tháng) - Tân Dậu (ngày) - Ất Mùi (giờ)</code>. Phần <code>=== LÁ SỐ TỬ VI ===</code> và danh sách đại vận giúp bài luận đầy đủ hơn.</p>
+            <div className="prompt-box">
+              <div className="row" style={{ justifyContent: 'space-between' }}>
+                <strong className="ptl">Câu lệnh mẫu cho Gemini</strong>
+                <button type="button" className="ghost" onClick={copyPrompt}>{copied ? 'Đã sao chép' : 'Sao chép câu lệnh'}</button>
+              </div>
+              <details>
+                <summary className="muted">Xem nội dung câu lệnh</summary>
+                <pre className="prompt-pre">{prompt}</pre>
+              </details>
+            </div>
+            <p className="fmt" style={{ marginTop: 14 }}>Đã có sẵn văn bản lá số thì dán thẳng vào ô bên phải. Tối thiểu cần dòng <code>Giới tính: Nam</code> và <code>Tứ trụ: Ất Dậu (năm) - Ất Dậu (tháng) - Tân Dậu (ngày) - Ất Mùi (giờ)</code>.</p>
             {api.note && <p className="muted">{api.note}</p>}
           </div>
           <div className="card">
