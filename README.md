@@ -51,6 +51,15 @@ git push -u origin main
 
 Mỗi lần push lên `main`, Vercel tự triển khai lại.
 
+### Phương án B0 – GitHub Pages không cần GitHub Actions (đơn giản nhất)
+
+Repo đã có sẵn bản web tĩnh dựng sẵn ở `docs/index.html` (kèm `docs/.nojekyll`).
+1. Repo → **Settings → Pages → Build and deployment → Source: Deploy from a branch**.
+2. Branch: `main`, thư mục: **`/docs`** → Save.
+3. Sau khoảng 1 phút web chạy tại `https://<tai-khoan>.github.io/<ten-repo>/`.
+
+Khi sửa code, chạy `npm run build:static` để cập nhật lại `docs/index.html` rồi commit + push.
+
 ### Phương án B – GitHub Pages (miễn phí, bản tĩnh, không có bài luận AI)
 
 1. Trên GitHub: repo → **Settings → Pages → Build and deployment → Source: GitHub Actions**.

@@ -34,5 +34,8 @@ const scripts = TEST ? `<script>${js.replace(/<\/script/g, '<\\/script')}</scrip
 <script>${js.replace(/<\/script/g, '<\\/script')}</script>`;
 fs.mkdirSync(`${root}/preview/dist`, { recursive: true });
 if (!TEST) fs.writeFileSync(`${root}/preview/dist/bat-tu-luan-giai.html`, `${head}\n<div id="root"></div>\n${scripts}`);
-fs.writeFileSync(`${root}/preview/dist/${TEST ? 'test' : 'index'}.html`, `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${head}</head><body><div id="root"></div>${scripts}</body></html>`);
+const page = `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${head}</head><body><div id="root"></div>${scripts}</body></html>`;
+fs.writeFileSync(`${root}/preview/dist/${TEST ? 'test' : 'index'}.html`, page);
+// Bản cho GitHub Pages kiểu "Deploy from a branch" (thư mục /docs) – không cần GitHub Actions
+if (!TEST) { fs.writeFileSync(`${root}/docs/index.html`, page); fs.writeFileSync(`${root}/docs/.nojekyll`, ''); }
 console.log('bundle KB', Math.round(js.length / 1024));
